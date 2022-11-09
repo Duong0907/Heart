@@ -31,7 +31,7 @@
             static randInt(left, right) {
                 return Math.floor(Math.random() * (right - left + 1) + left);
             }
-            static onHeart(x, y) {
+            static inHeart(x, y) {
                 // (x^2+y^2 - 1)^3-2x^2*y^3=0
                 let size = 10000;
                 let f = (x * x + y * y - size) * (x * x + y * y - size) * (x * x + y * y - size) - 200 * x * x * y * y * y;
@@ -41,8 +41,6 @@
 
         class Point {
             constructor(x, y, radius, color, maxX, maxY) {
-                this.originX = x;
-                this.originY = y;
                 this.x = x;
                 this.y = y;
                 this.radius = radius;
@@ -92,7 +90,7 @@
                 this.points = [];
                 for (let x = 0; x < this.maxX; x += 10) {
                     for (let y = 0; y < this.maxY; y += 10) {
-                        if (MyMath.onHeart(x - this.maxX / 2, -y + this.maxY / 2)) {
+                        if (MyMath.inHeart(x - this.maxX / 2, -y + this.maxY / 2)) {
                             let r = MyMath.randInt(0, 255);
                             let g = MyMath.randInt(0, 255);
                             let b = MyMath.randInt(0, 255);
@@ -114,7 +112,7 @@
             }
             isHeart() {
                 for (let i = 0; i < this.number; ++i) {
-                    if (!MyMath.onHeart(this.points[i].x - this.maxX / 2, -this.points[i].y + this.maxY / 2))
+                    if (!MyMath.inHeart(this.points[i].x - this.maxX / 2, -this.points[i].y + this.maxY / 2))
                         return false;
                 }
                 return true;
