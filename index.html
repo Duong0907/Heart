@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Heart</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #canvas {
+            border: 2px solid #ccc;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+    <script>
+        class MyMath {
+            static min(a, b) {
+                return a < b ? a : b;
+            }
+            static randInt(left, right) {
+                return Math.floor(Math.random() * (right - left + 1) + left);
+            }
+            static onHeart(x, y) {
+                // (x^2+y^2 - 1)^3-2x^2*y^3=0
+                let size = 10000;
+                let f = (x * x + y * y - size) * (x * x + y * y - size) * (x * x + y * y - size) - 200 * x * x * y * y * y;
+                return f < 0;
+            }
+        }
+
+        class Point {
+            constructor(x, y, radius, color, maxX, maxY) {
+                this.originX = x;
+                this.originY = y;
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+                this.maxX = maxX;
+                this.maxY = maxY;
+                do {
+                    this.dx = MyMath.randInt(-2, 2);
+                    this.dy = MyMath.randInt(-2, 2);
+                } while ((this.dx === 0 && this.dy === 0));
+
+                this.timer = 0;
+                this.timeInterval = MyMath.randInt(6, 10);
+                //   this.timeInterval = 10;
+            }
+            update(deltaTime) {
+                this.timer += deltaTime;
+                if (this.timer > this.timeInterval) {
+                    this.timer = 0;
+                    this.x += this.dx;
+                    this.y += this.dy;
+
+                    if (this.x <= 0 || this.x >= this.maxX)
+                        this.dx *= -1;
+                    if (this.y <= 0 || this.y >= this.maxY)
+                        this.dy *= -1;
+                }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Heart {
+            constructor(x, y, number, canvas) {
+                this.x = x;
+                this.y = y;
+                this.number = number;
+                this.maxX = canvas.width;
+                this.maxY = canvas.height;
+                this.canvas = canvas;
+                this.points = [];
+                for (let x = 0; x < this.maxX; x += 10) {
+                    for (let y = 0; y < this.maxY; y += 10) {
+                        if (MyMath.onHeart(x - this.maxX / 2, -y + this.maxY / 2)) {
+                            let r = MyMath.randInt(0, 255);
+                            let g = MyMath.randInt(0, 255);
+                            let b = MyMath.randInt(0, 255);
+                            let point = new Point(
+                                x,
+                                y,
+                                MyMath.randInt(5, 10),
+                                `rgb(${r}, ${g}, ${b})`,
+                                this.maxX,
+                                this.maxY
+                            )
+                            this.points.push(point);
+                        }
+                    }
+                }
+            }
+            update(deltaTime) {
+                this.points.forEach(point => point.update(deltaTime));
+            }
+            isHeart() {
+                for (let i = 0; i < this.number; ++i) {
+                    if (!MyMath.onHeart(this.points[i].x - this.maxX / 2, -this.points[i].y + this.maxY / 2))
+                        return false;
+                }
+                return true;
+            }
+            draw(ctx) {
+                this.points.forEach(point => point.draw(ctx));
+            }
+        }
+
+        const canvas = document.getElementById('canvas');
+        const width = canvas.width = MyMath.min(window.innerWidth, window.innerHeight);
+        const height = canvas.height = MyMath.min(window.innerWidth, window.innerHeight);
+        const ctx = canvas.getContext('2d');
+
+        var heart = new Heart(0, 0, 20, canvas);
+        var lastTime = 0;
+        while (heart.isHeart()) {
+            heart.update(999)
+        }
+        function animation(timeStamp = 0) {
+            ctx.clearRect(0, 0, width, height);
+            let deltaTime = timeStamp - lastTime;
+            lastTime = timeStamp;
+
+            heart.update(deltaTime);
+            heart.draw(ctx);
+            let myReq = requestAnimationFrame(animation);
+            if (heart.isHeart())
+                cancelAnimationFrame(myReq);
+        }
+        animation();
+    </script>
+</body>
+
+</html>
